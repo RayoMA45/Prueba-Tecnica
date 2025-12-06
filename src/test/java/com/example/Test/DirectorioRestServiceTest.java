@@ -37,11 +37,13 @@ public class DirectorioRestServiceTest {
         p1.setNombre("Marco");
         p1.setApellidoMaterno("Rayo");
         p1.setApellidoPaterno("Vazquez");
+        p1.setIdentificacion("123");
 
         Persona p2 = new Persona();
         p2.setId(2L);
         p2.setNombre("Ana");
-        p1.setApellidoPaterno("Vazquez");
+        p2.setApellidoPaterno("Vazquez");
+        p2.setIdentificacion("1234");
 
         when(directorio.findPersonas()).thenReturn(List.of(p1, p2));
 
@@ -55,12 +57,14 @@ public class DirectorioRestServiceTest {
 
     @Test
     void testGetPersonaByIdentificacion() {
-        Persona p = new Persona();
-        p.setId(1L);
-        p.setNombre("Marco");
-        p.setIdentificacion("123");
+        Persona p1 = new Persona();
+        p1.setId(1L);
+        p1.setNombre("Marco");
+        p1.setApellidoMaterno("Rayo");
+        p1.setApellidoPaterno("Vazquez");
+        p1.setIdentificacion("123");
 
-        when(directorio.findPersonaByIdentificacion("123")).thenReturn(p);
+        when(directorio.findPersonaByIdentificacion("123")).thenReturn(p1);
 
         ResponseObject response = directorioRestService.getPersona("123");
 
@@ -72,21 +76,27 @@ public class DirectorioRestServiceTest {
 
     @Test
     void testCreatePersona() {
-        Persona p = new Persona();
-        p.setNombre("Laura");
+        Persona p1 = new Persona();
+        p1.setNombre("Marco");
+        p1.setApellidoMaterno("Rayo");
+        p1.setApellidoPaterno("Vazquez");
+        p1.setIdentificacion("123");
 
         Persona saved = new Persona();
         saved.setId(5L);
-        saved.setNombre("Laura");
+        saved.setNombre(p1.getNombre());
+        saved.setApellidoMaterno(p1.getApellidoMaterno());
+        saved.setApellidoPaterno(p1.getApellidoPaterno());
+        saved.setIdentificacion(p1.getIdentificacion());
 
-        when(directorio.storePersona(p)).thenReturn(saved);
+        when(directorio.storePersona(p1)).thenReturn(saved);
 
-        ResponseObject response = directorioRestService.createPersona(p);
+        ResponseObject response = directorioRestService.createPersona(p1);
 
         assertTrue(response.isSuccess());
         assertEquals("Persona creada exitosamente", response.getMessage());
         PersonaDto personaDto = (PersonaDto) ((java.util.Map<?, ?>) response.getResponse()).get("persona");
         assertEquals(5L, personaDto.getId());
-        assertEquals("Laura", personaDto.getNombre());
+        assertEquals("Marco", personaDto.getNombre());
     }
 }
