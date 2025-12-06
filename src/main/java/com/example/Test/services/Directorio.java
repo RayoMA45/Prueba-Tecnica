@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import com.example.Test.entities.Persona;
 import com.example.Test.repositories.FacturaRepository;
 import com.example.Test.repositories.PersonaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,4 +38,8 @@ public class Directorio {
             personaRepository.deleteByIdentificacion(identificacion);
         }
     }
+
+    public Page<Persona> findPersonasPage(Pageable pageable) {
+    return personaRepository.findAll(pageable);
+}
 }

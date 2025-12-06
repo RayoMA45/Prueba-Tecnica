@@ -8,6 +8,9 @@ import com.example.Test.exceptions.ResponseObject;
 import com.example.Test.services.Directorio;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -85,30 +88,51 @@ public class DirectorioRestService {
         }
     }
 
+    private PersonaDto mapPersonaToDto(Persona persona) {
+        List<FacturaPersonaDto> facturas = new ArrayList<>();
 
-
-private PersonaDto mapPersonaToDto(Persona persona) {
-    List<FacturaPersonaDto> facturas = new ArrayList<>();
-
-    if (persona.getFacturas() != null) {
-        for (Factura f : persona.getFacturas()) {
-            facturas.add(FacturaPersonaDto.builder()
-                    .id(f.getId())
-                    .fecha(f.getFecha())
-                    .monto(f.getMonto())
-                    .build());
+        if (persona.getFacturas() != null) {
+            for (Factura f : persona.getFacturas()) {
+                facturas.add(FacturaPersonaDto.builder()
+                        .id(f.getId())
+                        .fecha(f.getFecha())
+                        .monto(f.getMonto())
+                        .build());
+            }
         }
+
+        return PersonaDto.builder()
+                .id(persona.getId())
+                .nombre(persona.getNombre())
+                .apellidoPaterno(persona.getApellidoPaterno())
+                .apellidoMaterno(persona.getApellidoMaterno())
+                .identificacion(persona.getIdentificacion())
+                .facturas(facturas)
+                .build();
     }
 
-    return PersonaDto.builder()
-            .id(persona.getId())
-            .nombre(persona.getNombre())
-            .apellidoPaterno(persona.getApellidoPaterno())
-            .apellidoMaterno(persona.getApellidoMaterno())
-            .identificacion(persona.getIdentificacion())
-            .facturas(facturas)
-            .build();
-}
+    @GetMapping("/paginado")
+    public ResponseObject getPersonasPaginadas(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            log.info("Consultando personas paginadas");
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Persona> personasPage = directorio.findPersonasPage(pageable);
+            List<PersonaDto> dtos = personasPage.getContent().stream()
+                    .map(this::mapPersonaToDto)
+                    .collect(Collectors.toList());
+            Map<String, Object> data = Map.of(
+                    "personas", dtos,
+                    "currentPage", personasPage.getNumber(),
+                    "totalItems", personasPage.getTotalElements(),
+                    "totalPages", personasPage.getTotalPages());
+            return new ResponseObject(true, "Consulta de personas paginada exitosa", data);
 
+        } catch (Exception e) {
+            log.error("Error inesperado al consultar personas paginadas: ", e);
+            return new ResponseObject(false, "Ocurrió un error inesperado. Intente más tarde.", null);
+        }
+    }
 
 }
